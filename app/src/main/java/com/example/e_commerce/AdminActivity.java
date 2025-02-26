@@ -9,7 +9,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class AdminActivity extends AppCompatActivity {
-    private MaterialButton logoutButton;
+    private MaterialButton manageUsersButton, addProductButton, logoutButton;
     private FirebaseAuth auth;
 
     @Override
@@ -18,14 +18,20 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
 
         auth = FirebaseAuth.getInstance();
+        manageUsersButton = findViewById(R.id.manageUsersButton);
+        addProductButton = findViewById(R.id.addProductButton);
         logoutButton = findViewById(R.id.logoutButton);
+
+        manageUsersButton.setOnClickListener(v -> 
+            startActivity(new Intent(this, ManageUsersActivity.class)));
+
+        addProductButton.setOnClickListener(v -> 
+            startActivity(new Intent(this, AddProductActivity.class)));
 
         logoutButton.setOnClickListener(v -> {
             auth.signOut();
             startActivity(new Intent(this, AuthActivity.class));
             finish();
         });
-
-        // TODO: Implement other admin functionalities
     }
 } 
