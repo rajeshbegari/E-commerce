@@ -5,5 +5,12 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
+    <!-- Splash screen theme -->
+    <style name="Theme.Ecommerce.Splash" parent="Base.Theme.Ecommerce">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
     <style name="Theme.Ecommerce" parent="Base.Theme.Ecommerce" />
 </resources>

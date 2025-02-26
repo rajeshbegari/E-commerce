@@ -40,4 +40,14 @@
         android:layout_marginTop="24dp"
         android:text="Login" />
 
+    <TextView
+        android:id="@+id/forgotPasswordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:text="Forgot Password?"
+        android:textColor="@color/design_default_color_primary"
+        android:padding="8dp" />
+
 </LinearLayout> 

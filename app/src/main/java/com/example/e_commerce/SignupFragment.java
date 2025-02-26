@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SignupFragment extends Fragment {
-    private TextInputEditText nameInput, emailInput, passwordInput;
+    private TextInputEditText nameInput, emailInput, passwordInput, confirmPasswordInput;
     private MaterialButton signupButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -36,6 +36,7 @@ public class SignupFragment extends Fragment {
         nameInput = view.findViewById(R.id.nameInput);
         emailInput = view.findViewById(R.id.emailInput);
         passwordInput = view.findViewById(R.id.passwordInput);
+        confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
         signupButton = view.findViewById(R.id.signupButton);
 
         signupButton.setOnClickListener(v -> signupUser());
@@ -47,9 +48,15 @@ public class SignupFragment extends Fragment {
         String name = nameInput.getText().toString().trim();
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
+        String confirmPassword = confirmPasswordInput.getText().toString().trim();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
             return;
         }
 

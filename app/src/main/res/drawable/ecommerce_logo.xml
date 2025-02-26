@@ -1,1 +1,22 @@
- 
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Shopping cart background circle -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M100,100m-100,0a100,100 0,1 1,200 0a100,100 0,1 1,-200 0" />
+
+    <!-- Shopping cart icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,70 L65,110 L140,110 L155,70 Z
+                         M60,80 L145,80
+                         M70,90 L135,90
+                         M75,100 L130,100
+                         M85,120 A10,10 0 1,1 85,140
+                         M125,120 A10,10 0 1,1 125,140" />
+</vector> 
