@@ -62,7 +62,7 @@ public class SignupFragment extends Fragment {
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    // Save additional user info to Firestore
+
                     Map<String, Object> user = new HashMap<>();
                     user.put("name", name);
                     user.put("email", email);

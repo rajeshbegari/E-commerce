@@ -1,6 +1,8 @@
 package com.example.e_commerce.adapters;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +17,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.e_commerce.MainActivity;
 import com.example.e_commerce.R;
 import com.example.e_commerce.models.Product;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,14 +33,20 @@ import java.util.Map;
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
     private List<Product> products;
     private final OnProductClickListener addToCartListener;
+    private Context context;
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
 
     public interface OnProductClickListener {
         void onProductClick(Product product);
     }
 
-    public ProductAdapter(List<Product> products, OnProductClickListener addToCartListener) {
+    public ProductAdapter(List<Product> products, OnProductClickListener addToCartListener, Context context) {
         this.products = products;
         this.addToCartListener = addToCartListener;
+        this.context = context;
+        this.db = FirebaseFirestore.getInstance();
+        this.auth = FirebaseAuth.getInstance();
     }
 
     @NonNull
@@ -127,6 +137,9 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     context, R.layout.list_item, sizes);
             sizeDropdown.setAdapter(adapter);
 
+            // Initialize quantity text
+            quantityText.setText("1");
+
             // Setup quantity controls
             final int[] quantity = {1};
             dialogView.findViewById(R.id.decreaseQuantity).setOnClickListener(v -> {
@@ -150,15 +163,17 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 }
 
                 addToCart(product, selectedSize, quantity[0]);
-                ((AlertDialog) dialogView.getParent()).dismiss();
+                ((AlertDialog) dialogView.getParent().getParent()).dismiss();
             });
         }
 
         private void addToCart(Product product, String size, int quantity) {
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String userId = auth.getCurrentUser().getUid();
+            if (auth.getCurrentUser() == null) {
+                Toast.makeText(context, "Please login to add items to cart", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            String userId = auth.getCurrentUser().getUid();
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("productId", product.getId());
             cartItem.put("name", product.getName());
@@ -170,12 +185,18 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             db.collection("users").document(userId)
                     .collection("cart")
                     .add(cartItem)
-                    .addOnSuccessListener(documentReference -> 
-                        Toast.makeText(itemView.getContext(),
-                                "Added to cart", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> 
-                        Toast.makeText(itemView.getContext(),
-                                "Failed to add to cart", Toast.LENGTH_SHORT).show());
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show();
+                        
+                        // Navigate to Home tab if we're in MainActivity
+                        if (context instanceof MainActivity) {
+                            ((MainActivity) context).navigateToHome();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(context, "Error adding to cart: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 } 

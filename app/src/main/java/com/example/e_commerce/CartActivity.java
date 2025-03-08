@@ -1,5 +1,6 @@
 package com.example.e_commerce;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -140,7 +141,21 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void processCheckout() {
-        // TODO: Implement checkout process
-        Toast.makeText(this, "Checkout functionality coming soon!", Toast.LENGTH_SHORT).show();
+        if (cartItems.isEmpty()) {
+            Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            // Start CheckoutActivity
+            Intent intent = new Intent(this, CheckoutActivity.class);
+            // Pass the total amount to checkout
+            intent.putExtra("total_amount", totalPrice);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Error starting checkout: " + e.getMessage(), 
+                Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
     }
 }

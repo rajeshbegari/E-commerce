@@ -53,6 +53,10 @@
         <activity
             android:name=".AccountActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".CheckoutActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

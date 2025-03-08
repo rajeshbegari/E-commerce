@@ -21,12 +21,12 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductFragment extends Fragment {
-    private String category;
+public class ProductFragment extends Fragment implements ProductAdapter.OnProductClickListener {
     private RecyclerView recyclerView;
     private ProductAdapter adapter;
     private List<Product> productList;
     private FirebaseFirestore db;
+    private String category;
 
     public static ProductFragment newInstance(String category) {
         ProductFragment fragment = new ProductFragment();
@@ -48,39 +48,38 @@ public class ProductFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_product, container, false);
-        recyclerView = view.findViewById(R.id.productsRecyclerView);
-        setupRecyclerView();
+        setupRecyclerView(view);
         loadProducts();
         return view;
     }
 
-    private void setupRecyclerView() {
-        adapter = new ProductAdapter(productList, this::addToCart);
+    private void setupRecyclerView(View view) {
+        recyclerView = view.findViewById(R.id.productsRecyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        adapter = new ProductAdapter(productList, this, requireContext());
         recyclerView.setAdapter(adapter);
     }
 
     private void loadProducts() {
         db.collection("products")
-                .whereEqualTo("category", category)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Toast.makeText(getContext(), "Error loading products",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+            .whereEqualTo("category", category)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                productList.clear();
+                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    Product product = document.toObject(Product.class);
+                    product.setId(document.getId());
+                    productList.add(product);
+                }
+                adapter.notifyDataSetChanged();
+            });
+    }
 
-                    productList.clear();
-                    for (QueryDocumentSnapshot doc : value) {
-                        Product product = doc.toObject(Product.class);
-                        product.setId(doc.getId());
-                        productList.add(product);
-                    }
-                    adapter.notifyDataSetChanged();
-                });
+    @Override
+    public void onProductClick(Product product) {
+        // Handle product click if needed
     }
 
     private void addToCart(Product product) {
