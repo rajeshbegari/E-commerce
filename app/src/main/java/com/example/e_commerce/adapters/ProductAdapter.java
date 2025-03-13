@@ -3,6 +3,7 @@ package com.example.e_commerce.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,88 +116,160 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
 
         private void setupDialogViews(View dialogView, Product product, Context context) {
-            ImageView productImage = dialogView.findViewById(R.id.productImage);
-            TextView productName = dialogView.findViewById(R.id.productName);
-            TextView productPrice = dialogView.findViewById(R.id.productPrice);
-            TextView productDescription = dialogView.findViewById(R.id.productDescription);
-            AutoCompleteTextView sizeDropdown = dialogView.findViewById(R.id.sizeDropdown);
-            TextView quantityText = dialogView.findViewById(R.id.quantityText);
-            MaterialButton addToCartButton = dialogView.findViewById(R.id.addToCartButton);
+            try {
+                ImageView productImage = dialogView.findViewById(R.id.productImage);
+                TextView productName = dialogView.findViewById(R.id.productName);
+                TextView productPrice = dialogView.findViewById(R.id.productPrice);
+                TextView productDescription = dialogView.findViewById(R.id.productDescription);
+                AutoCompleteTextView sizeDropdown = dialogView.findViewById(R.id.sizeDropdown);
+                TextView quantityText = dialogView.findViewById(R.id.quantityText);
+                MaterialButton addToCartButton = dialogView.findViewById(R.id.addToCartButton);
 
-            // Load product details
-            Glide.with(context).load(product.getImageUrl())
-                    .placeholder(R.drawable.placeholder_image)
-                    .into(productImage);
-            productName.setText(product.getName());
-            productPrice.setText(String.format("$%.2f", product.getPrice()));
-            productDescription.setText(product.getDescription());
+                if (product != null) {
+                    // Load product details
+                    if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
+                        Glide.with(context)
+                            .load(product.getImageUrl())
+                            .placeholder(R.drawable.placeholder_image)
+                            .error(R.drawable.placeholder_image)
+                            .into(productImage);
+                    }
 
-            // Setup size dropdown
-            String[] sizes = {"S", "M", "L", "XL"};
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                    context, R.layout.list_item, sizes);
-            sizeDropdown.setAdapter(adapter);
+                    productName.setText(product.getName() != null ? product.getName() : "");
+                    productPrice.setText(String.format("$%.2f", product.getPrice()));
+                    productDescription.setText(product.getDescription() != null ? product.getDescription() : "");
 
-            // Initialize quantity text
-            quantityText.setText("1");
+                    // Setup size dropdown
+                    String[] sizes = {"S", "M", "L", "XL"};
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            context, R.layout.list_item, sizes);
+                    sizeDropdown.setAdapter(adapter);
 
-            // Setup quantity controls
-            final int[] quantity = {1};
-            dialogView.findViewById(R.id.decreaseQuantity).setOnClickListener(v -> {
-                if (quantity[0] > 1) {
-                    quantity[0]--;
-                    quantityText.setText(String.valueOf(quantity[0]));
+                    // Initialize quantity text
+                    quantityText.setText("1");
+
+                    // Setup quantity controls
+                    final int[] quantity = {1};
+                    View decreaseBtn = dialogView.findViewById(R.id.decreaseQuantity);
+                    View increaseBtn = dialogView.findViewById(R.id.increaseQuantity);
+
+                    if (decreaseBtn != null) {
+                        decreaseBtn.setOnClickListener(v -> {
+                            if (quantity[0] > 1) {
+                                quantity[0]--;
+                                quantityText.setText(String.valueOf(quantity[0]));
+                            }
+                        });
+                    }
+
+                    if (increaseBtn != null) {
+                        increaseBtn.setOnClickListener(v -> {
+                            quantity[0]++;
+                            quantityText.setText(String.valueOf(quantity[0]));
+                        });
+                    }
+
+                    // Setup add to cart button
+                    if (addToCartButton != null) {
+                        addToCartButton.setOnClickListener(v -> {
+                            String selectedSize = sizeDropdown.getText().toString();
+                            if (selectedSize.isEmpty()) {
+                                sizeDropdown.setError("Please select a size");
+                                return;
+                            }
+
+                            addToCart(product, selectedSize, quantity[0]);
+                            
+                            // Safely dismiss dialog
+                            View parent = dialogView.getParent() != null ? (View) dialogView.getParent() : null;
+                            if (parent != null && parent.getParent() instanceof AlertDialog) {
+                                AlertDialog dialog = (AlertDialog) parent.getParent();
+                                if (dialog.isShowing()) {
+                                    dialog.dismiss();
+                                }
+                            }
+                        });
+                    }
                 }
-            });
-
-            dialogView.findViewById(R.id.increaseQuantity).setOnClickListener(v -> {
-                quantity[0]++;
-                quantityText.setText(String.valueOf(quantity[0]));
-            });
-
-            // Setup add to cart button
-            addToCartButton.setOnClickListener(v -> {
-                String selectedSize = sizeDropdown.getText().toString();
-                if (selectedSize.isEmpty()) {
-                    sizeDropdown.setError("Please select a size");
-                    return;
-                }
-
-                addToCart(product, selectedSize, quantity[0]);
-                ((AlertDialog) dialogView.getParent().getParent()).dismiss();
-            });
+            } catch (Exception e) {
+                Log.e("ProductAdapter", "Error in setupDialogViews: " + e.getMessage());
+                Toast.makeText(context, "Error setting up product details", Toast.LENGTH_SHORT).show();
+            }
         }
 
         private void addToCart(Product product, String size, int quantity) {
-            if (auth.getCurrentUser() == null) {
-                Toast.makeText(context, "Please login to add items to cart", Toast.LENGTH_SHORT).show();
-                return;
+            try {
+                if (auth == null || auth.getCurrentUser() == null) {
+                    Toast.makeText(context, "Please login to add items to cart", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (context == null) {
+                    Log.e("ProductAdapter", "Context is null");
+                    return;
+                }
+
+                String userId = auth.getCurrentUser().getUid();
+                if (userId == null || userId.isEmpty()) {
+                    Toast.makeText(context, "User ID not found. Please login again", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Validate product data
+                if (product == null || product.getId() == null || product.getName() == null) {
+                    Toast.makeText(context, "Invalid product data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Map<String, Object> cartItem = new HashMap<>();
+                cartItem.put("productId", product.getId());
+                cartItem.put("name", product.getName());
+                cartItem.put("price", product.getPrice());
+                cartItem.put("size", size);
+                cartItem.put("quantity", quantity);
+                cartItem.put("imageUrl", product.getImageUrl() != null ? product.getImageUrl() : "");
+
+                // Check if Firestore instance is available
+                if (db == null) {
+                    db = FirebaseFirestore.getInstance();
+                }
+
+                db.collection("users").document(userId)
+                        .collection("cart")
+                        .add(cartItem)
+                        .addOnSuccessListener(documentReference -> {
+                            if (context != null) {
+                                Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show();
+                                
+                                // Safely navigate to Home tab if we're in MainActivity
+                                if (context instanceof MainActivity) {
+                                    Activity activity = (Activity) context;
+                                    if (!activity.isFinishing() && !activity.isDestroyed()) {
+                                        ((MainActivity) context).runOnUiThread(() -> {
+                                            try {
+                                                ((MainActivity) context).navigateToHome();
+                                            } catch (Exception e) {
+                                                Log.e("ProductAdapter", "Error navigating to home: " + e.getMessage());
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            if (context != null) {
+                                Toast.makeText(context, "Failed to add to cart. Please try again", 
+                                    Toast.LENGTH_SHORT).show();
+                                Log.e("ProductAdapter", "Error adding to cart: " + e.getMessage());
+                            }
+                        });
+            } catch (Exception e) {
+                Log.e("ProductAdapter", "Error in addToCart: " + e.getMessage());
+                if (context != null) {
+                    Toast.makeText(context, "Something went wrong. Please try again", 
+                        Toast.LENGTH_SHORT).show();
+                }
             }
-
-            String userId = auth.getCurrentUser().getUid();
-            Map<String, Object> cartItem = new HashMap<>();
-            cartItem.put("productId", product.getId());
-            cartItem.put("name", product.getName());
-            cartItem.put("price", product.getPrice());
-            cartItem.put("size", size);
-            cartItem.put("quantity", quantity);
-            cartItem.put("imageUrl", product.getImageUrl());
-
-            db.collection("users").document(userId)
-                    .collection("cart")
-                    .add(cartItem)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show();
-                        
-                        // Navigate to Home tab if we're in MainActivity
-                        if (context instanceof MainActivity) {
-                            ((MainActivity) context).navigateToHome();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Error adding to cart: " + e.getMessage(), 
-                            Toast.LENGTH_SHORT).show();
-                    });
         }
     }
 } 
