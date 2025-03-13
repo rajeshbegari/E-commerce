@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +30,7 @@ public class AdminActivity extends AppCompatActivity implements SearchResultAdap
     private List<Product> searchResults;
     private View buttonsLayout;
     private FirebaseFirestore db;
+    private static final String TAG = "AdminActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,7 @@ public class AdminActivity extends AppCompatActivity implements SearchResultAdap
         initializeViews();
         setupFirestore();
         setupSearchView();
+        setupNavigationButtons();
     }
 
     private void initializeViews() {
@@ -50,17 +53,6 @@ public class AdminActivity extends AppCompatActivity implements SearchResultAdap
         searchAdapter = new SearchResultAdapter(searchResults, this);
         searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         searchResultsRecyclerView.setAdapter(searchAdapter);
-
-        MaterialButton addProductButton = findViewById(R.id.addProductButton);
-        MaterialButton manageOrdersButton = findViewById(R.id.manageOrdersButton);
-        MaterialButton manageUsersButton = findViewById(R.id.manageUsersButton);
-        MaterialButton logoutButton = findViewById(R.id.logoutButton);
-
-        // Set up button click listeners
-        addProductButton.setOnClickListener(v -> navigateToAddProduct());
-        manageOrdersButton.setOnClickListener(v -> navigateToManageOrders());
-        manageUsersButton.setOnClickListener(v -> navigateToManageUsers());
-        logoutButton.setOnClickListener(v -> performLogout());
     }
 
     private void setupFirestore() {
@@ -143,8 +135,29 @@ public class AdminActivity extends AppCompatActivity implements SearchResultAdap
     }
 
     private void navigateToManageOrders() {
-        Intent intent = new Intent(this, ManageOrdersActivity.class);
-        startActivity(intent);
+        try {
+            Log.d(TAG, "Attempting to navigate to ManageOrdersActivity");
+            
+            // Check if we have the necessary class
+            Class<?> manageOrdersClass = ManageOrdersActivity.class;
+            Log.d(TAG, "ManageOrdersActivity class found");
+            
+            // Create the intent with explicit context
+            Intent intent = new Intent(AdminActivity.this, manageOrdersClass);
+            
+            // Add flags to ensure clean navigation
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            
+            // Start the activity
+            startActivity(intent);
+            Log.d(TAG, "ManageOrdersActivity started successfully");
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to ManageOrdersActivity: " + e.getMessage(), e);
+            e.printStackTrace(); // Print full stack trace
+            Toast.makeText(this, "Error opening Manage Orders: " + e.getMessage(), 
+                Toast.LENGTH_LONG).show();
+        }
     }
 
     private void navigateToManageUsers() {
@@ -208,5 +221,33 @@ public class AdminActivity extends AppCompatActivity implements SearchResultAdap
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void setupNavigationButtons() {
+        try {
+            MaterialButton addProductButton = findViewById(R.id.addProductButton);
+            MaterialButton manageOrdersButton = findViewById(R.id.manageOrdersButton);
+            MaterialButton manageUsersButton = findViewById(R.id.manageUsersButton);
+            MaterialButton logoutButton = findViewById(R.id.logoutButton);
+
+            if (addProductButton != null) {
+                addProductButton.setOnClickListener(v -> navigateToAddProduct());
+            }
+
+            if (manageOrdersButton != null) {
+                manageOrdersButton.setOnClickListener(v -> navigateToManageOrders());
+            }
+
+            if (manageUsersButton != null) {
+                manageUsersButton.setOnClickListener(v -> navigateToManageUsers());
+            }
+
+            if (logoutButton != null) {
+                logoutButton.setOnClickListener(v -> performLogout());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up navigation buttons: " + e.getMessage());
+            Toast.makeText(this, "Error initializing admin panel", Toast.LENGTH_SHORT).show();
+        }
     }
 } 

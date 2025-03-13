@@ -57,6 +57,11 @@
         <activity
             android:name=".CheckoutActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".ManageOrdersActivity"
+            android:exported="false"
+            android:label="Manage Orders"/>
     </application>
 
 </manifest>

@@ -127,4 +127,9 @@ public class MainActivity extends AppCompatActivity {
             viewPager.setCurrentItem(0, true); // Scroll to first tab with animation
         }
     }
+
+    public void navigateToManageOrders() {
+        Intent intent = new Intent(this, ManageOrdersActivity.class);
+        startActivity(intent);
+    }
 }
