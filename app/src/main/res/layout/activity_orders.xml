@@ -14,7 +14,7 @@
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
         app:navigationIcon="@drawable/ic_back"
         app:title="My Orders"
-        app:titleTextColor="@color/white" />
+        app:titleTextColor="@android:color/white" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -24,6 +24,7 @@
             android:id="@+id/ordersRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
             android:padding="8dp" />
 
         <TextView
@@ -31,8 +32,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="No orders yet"
-            android:textSize="18sp"
+            android:text="No orders found"
+            android:textSize="16sp"
             android:visibility="gone" />
+
     </FrameLayout>
+
 </LinearLayout> 
